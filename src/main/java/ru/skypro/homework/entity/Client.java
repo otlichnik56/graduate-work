@@ -1,5 +1,6 @@
 package ru.skypro.homework.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import ru.skypro.homework.model.user.Role;
 
@@ -7,7 +8,8 @@ import javax.persistence.*;
 
 @Data
 @Entity
-@Table(name = "client")
+@Table(name = "users")
+@AllArgsConstructor
 public class Client {
 
     @Id
@@ -25,4 +27,7 @@ public class Client {
     private String city;
     private String image;
 
+    public Client() {
+
+    }
 }
