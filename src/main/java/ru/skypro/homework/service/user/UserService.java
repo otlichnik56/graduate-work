@@ -1,39 +1,18 @@
 package ru.skypro.homework.service.user;
 
-import org.springframework.stereotype.Service;
-
-import lombok.AllArgsConstructor;
-import ru.skypro.homework.model.ad.Ads;
-import ru.skypro.homework.model.ad.AdsUser;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.multipart.MultipartFile;
+import ru.skypro.homework.model.user.NewPassword;
 import ru.skypro.homework.model.user.User;
-import ru.skypro.homework.service.Mapper;
 
-@Service
-@AllArgsConstructor
-public class UserService implements UserInterface {
+public interface UserService {
 
-    private Mapper mapper;
+    User getUser(String username);
 
-    @Override
-    public User getUser() {
-        return mapper.clientToUser();
-    }
+    boolean setPassword(NewPassword newPassword, String username);
 
-    @Override
-    public User updateUser() {
-        return new User(1, "jon", "slith", "test@mail.ru", "89991234545",
-                "123", "Moscow", "image" );
-    }
+    User updateUser(User user, Authentication authentication);
 
-    @Override
-    public User updateUserImage() {
-        return new User(0, "imageUpdate", null, null, null, null, null, null);
-    }
+    boolean updateUserImage(MultipartFile file, Authentication authentication);
 
-    @Override
-    public AdsUser getAdsMe() {
-        return mapper.clientToAdsUser();
-    }
-
-   
 }

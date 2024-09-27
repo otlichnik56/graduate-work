@@ -1,23 +1,18 @@
 package ru.skypro.homework.controller;
 
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import ru.skypro.homework.entity.Image;
-import ru.skypro.homework.model.image.ImageDto;
-import ru.skypro.homework.repository.AdRepository;
-import ru.skypro.homework.repository.ImageRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.service.ads.AdsService;
-
-import java.io.IOException;
-import java.util.List;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @CrossOrigin(value = "http://localhost:3000")
@@ -26,23 +21,36 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/image")
 public class ImageController {
 
+    private final Logger logger = LoggerFactory.getLogger(ImageController.class);
     private final AdsService adsService;
-    private final ImageRepository imageRepository;
-    private final AdRepository adRepository;
 
 
-    @GetMapping
-    public ResponseEntity<byte[]> getImage() {
-        Image image = imageRepository.getImage();
+    /** ПРОВЕРЕН
+     *
+     * @param id
+     * @return
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<byte[]> getAdsImage(@PathVariable(value = "id") Integer id) {
+        byte[] picture = adsService.getImage(id);
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.parseMediaType(image.getMediaType()));
-        headers.setContentLength(image.getData().length);
-        return ResponseEntity.status(HttpStatus.OK).headers(headers).body(image.getData());
+        return ResponseEntity.status(HttpStatus.OK).headers(headers).body(picture);
     }
 
-    // @PatchMapping("/{id}")
-    // public ResponseEntity<byte[]> updateImage() {
-
-    // }
+    /** ПРОВЕРЕН. На фронте не доходит до сюды, но в Swagger всё норма
+     *
+     * @param id
+     * @param file
+     * @param authentication
+     * @return
+     */
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+    @PatchMapping(value = "/{id}", consumes = "multipart/form-data")
+    public String updateAdsImage(@PathVariable(value = "id") Integer id,
+                                 @RequestPart(value = "image") MultipartFile file,
+                                 Authentication authentication) {
+        logger.info("ImageController. method updateAdsImage. Username = " + authentication + " id = " + id);
+        return adsService.updateImage(id, file);
+    }
 
 }

@@ -7,38 +7,50 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Service;
 
+import ru.skypro.homework.entity.Client;
 import ru.skypro.homework.model.user.RegisterReq;
 import ru.skypro.homework.model.user.Role;
+import ru.skypro.homework.repository.ClientRepository;
 import ru.skypro.homework.service.Mapper;
 
 @Service
 public class AuthServiceImpl implements AuthService {
 
     private final UserDetailsManager manager;
+    private final PasswordEncoder encoder;
+    private final ClientRepository clientRepository;
     private final Mapper mapper;
 
-    private final PasswordEncoder encoder;
-
-    public AuthServiceImpl(UserDetailsManager manager, Mapper mapper) {
+    public AuthServiceImpl(UserDetailsManager manager, ClientRepository clientRepository, Mapper mapper) {
         this.manager = manager;
+        this.clientRepository = clientRepository;
         this.mapper = mapper;
         this.encoder = new BCryptPasswordEncoder();
     }
 
+    /** ПРОВЕРЕН
+     *
+     * @param userName
+     * @param password
+     * @return
+     */
     @Override
     public boolean login(String userName, String password) {
-        
         if (!manager.userExists(userName)) {
             return false;
         }
         UserDetails userDetails = manager.loadUserByUsername(userName);
         String encryptedPassword = userDetails.getPassword();
         String encryptedPasswordWithoutEncryptionType = encryptedPassword.substring(8);
-        mapper.clientToLoginReg(userName, password);
-        
         return encoder.matches(password, encryptedPasswordWithoutEncryptionType);
     }
 
+    /** ПРОВЕРЕН
+     *
+     * @param registerReq
+     * @param role
+     * @return
+     */
     @Override
     public boolean register(RegisterReq registerReq, Role role) {
         if (manager.userExists(registerReq.getUsername())) {
@@ -46,12 +58,14 @@ public class AuthServiceImpl implements AuthService {
         }
         manager.createUser(
                 User.withDefaultPasswordEncoder()
-                        .password(registerReq.getPassword())
                         .username(registerReq.getUsername())
+                        .password(registerReq.getPassword())
                         .roles(role.name())
                         .build()
         );
-        mapper.registerReqToClient(registerReq);
+        Client client = clientRepository.findByUsername(registerReq.getUsername());
+        mapper.registerReqToClient(registerReq, client);
+        clientRepository.save(client);
         return true;
     }
 }

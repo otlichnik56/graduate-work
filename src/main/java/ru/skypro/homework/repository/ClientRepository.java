@@ -6,19 +6,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import ru.skypro.homework.entity.Client;
 
+@Repository
 public interface ClientRepository extends JpaRepository<Client, Integer> {
 
-    @Query(value = "SELECT * FROM client WHERE username = ?1", nativeQuery = true)
-    Client getUserName(String username);
+    @Query(value = "SELECT * FROM users WHERE username = :username", nativeQuery = true)
+    Client getUserName(@Param("username") String username);
 
     Client findByUsername(String username);
-
-    @Transactional
-    @Modifying
-    @Query(value = "UPDATE client SET password = ?2 WHERE password = ?1", nativeQuery = true)
-    void setNewPass(String currentPass, String newPass);
-
 
 }
